@@ -157,19 +157,41 @@ namespace posv2
             DataTable iamges;
             con.MysqlQuery(query);
             iamges = con.QueryEx();
-            imgList.ImageSize = new Size(152, 100);
+            imgList.ImageSize = new Size(152, 90);
             imgList.ColorDepth = ColorDepth.Depth32Bit;
 
             foreach (DataRow row in iamges.Rows) // Loop over the rows.
             {
-                try
+                if (table.Equals("categories"))
                 {
-                    imgList.Images.Add(Image.FromFile(@"c:/xampp/htdocs/mpos/images/" + populateFolder + "/" + row["image"].ToString()));
+                    try
+                    {
+                        imgList.Images.Add(Image.FromFile(@"c:/xampp/htdocs/mpos/images/" + populateFolder + "/" + row["image"].ToString()));
+                    }
+                    catch (Exception w)
+                    {
+                        MessageBox.Show(w.Message + " Image Not Found");
+                    }
                 }
-                catch (Exception w)
-                {
-                    MessageBox.Show(w.Message);
+                else {
+
+                    try
+                    {
+                        if (row["image"].ToString().Equals("1"))
+                        {
+                            imgList.Images.Add(Image.FromFile(@"c:/xampp/htdocs/mpos/images/" + populateFolder + "/" + row["image"].ToString()));
+                        }
+                        else {
+
+                            imgList.Images.Add(Image.FromFile(@"c:/xampp/htdocs/mpos/images/" + populateFolder + "/" + row["image"].ToString()));
+                        }
+                    }
+                    catch (Exception w)
+                    {
+                        MessageBox.Show(w.Message + " Image Not Found");
+                    }
                 }
+
             }
             con.conClose();
             return imgList;
@@ -1271,10 +1293,24 @@ namespace posv2
         {
             Discount frmdiscount = new Discount();
             frmdiscount.ShowDialog();
-
             SessionData.setBillamount();
             ShowCartTotal();
 
+
+            if (SessionData.newOrderId > 0)
+            {
+                //update discount for order
+                db con = new db();
+                string query = "";
+                query = "UPDATE `orders` SET `discount`='" + SessionData.discount + "' WHERE id = '" + SessionData.newOrderId + "'";
+                con.MysqlQuery(query);
+                con.NonQueryEx();
+                con.conClose();
+            }
+            else {
+                MessageBox.Show("Please select Order.");
+            }
+            
 
         }
 

@@ -43,7 +43,8 @@ namespace posv2
             DataTable result;
             con = new db();
             //string query = "SELECT COUNT(order_details.id) AS itemcount,(SUM(order_details.subtotal)) AS cardsale, (IF(paymentdetails.cardtype='','CASH',paymentdetails.cardtype)) AS cardtype FROM order_details JOIN orders ON orders.id=order_details.order_id JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 GROUP BY paymentdetails.cardtype ";
-            string query = "SELECT COUNT(order_details.id) AS itemcount,(SUM(order_details.subtotal +(order_details.subtotal*orders.service_charge/100)-(order_details.subtotal*orders.discount/100))) AS cardsale, (IF(paymentdetails.cardtype='','CASH',paymentdetails.cardtype)) AS cardtype FROM order_details JOIN orders ON orders.id=order_details.order_id JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 GROUP BY paymentdetails.cardtype ";
+            //string query = "SELECT COUNT(order_details.id) AS itemcount,(SUM(order_details.subtotal)) AS cardsale,paymentdetails.cardtype AS cardtype FROM order_details JOIN orders ON orders.id=order_details.order_id JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 GROUP BY paymentdetails.cardtype ";
+            string query = "SELECT SUM(paymentdetails.amount) AS total,paymentdetails.cardtype FROM `paymentdetails` WHERE date(paymentdetails.created) = date(CURDATE()) GROUP BY paymentdetails.cardtype";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
