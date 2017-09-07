@@ -8,10 +8,11 @@ using System.Data;
 
 namespace posv2
 {
-    public class VoidOrder
+    public class SalesSummary
     {
         PrintDocument pdoc = null;
         double _totalsale, _totalcardsale, _totalcashsale;
+        string _orderrange;
         DataTable _voidOrder;
 
         public double TotalSale
@@ -22,32 +23,24 @@ namespace posv2
             get { return this._totalsale; }
         }
 
-
-        public DataTable SetVoidOrder
+        public double TotalCardSale
         {
-            //set the guestcount
-            set { this._voidOrder = value; }
-            //get the guestcount
-            get { return this._voidOrder; }
+            //set the TotalSale
+            set { this._totalcardsale = value; }
+            //get the TotalSale
+            get { return this._totalcardsale; }
+        }
+
+        public double TotalCashSale
+        {
+            //set the TotalSale
+            set { this._totalcashsale = value; }
+            //get the TotalSale
+            get { return this._totalcashsale; }
         }
 
 
-        public VoidOrder(double totalSale,DataTable voidorder)
-        {
-           
-            _totalsale = totalSale;
-            _voidOrder = voidorder;
-
-        }
-
-        public VoidOrder(DataTable voidorder)
-        {
-
-            _voidOrder = voidorder;
-
-        }
-
-
+        
 
         public void print(string printer)
         {
@@ -131,7 +124,7 @@ namespace posv2
             graphics.DrawString("Void Order", new Font("Courier New", 12),
                                 new SolidBrush(Color.Red), 60, startY + Offset);
 
-            
+
             Offset = Offset + 15;
             graphics.DrawString(underLine, new Font(customfont, 10),
                      new SolidBrush(Color.Black), startX, startY + Offset);
@@ -201,7 +194,7 @@ namespace posv2
                            new Font(customfont, 10),
                            new SolidBrush(Color.Black), 50, startY + Offset);
 
-            }   
+            }
         }
     }
 }
