@@ -291,7 +291,7 @@ namespace posv2
          //   MessageBox.Show(SessionData.cartTotal.ToString());
             double discount = SessionData.discount;
             double srviceCharge = SessionData.serviceCharge;
-            lbl_total.Text = String.Format("{0:n}", SessionData.cartTotal - (SessionData.cartTotal * SessionData.discount / 100) + (SessionData.cartTotal * SessionData.serviceCharge / 100));
+            lbl_total.Text = String.Format("{0:n}", (SessionData.cartTotal) + (SessionData.cartTotal * SessionData.serviceCharge / 100) - (((SessionData.cartTotal) + (SessionData.cartTotal * SessionData.serviceCharge / 100)) * SessionData.discount / 100));
             lbl_discount.Text = SessionData.discount.ToString() + '%';
             lbl_service_charge.Text = SessionData.serviceCharge.ToString() + '%';
             SessionData.SetLastbillamount();
@@ -344,9 +344,15 @@ namespace posv2
         //create new order
         private void createOrder(int orderType)
         {
+
+            int noOfGuest =1;
             int orderstatus;
+            string odtype = "T";//order type default Tw
+
             if (orderType.Equals(1))
             {
+                odtype = "D";
+                noOfGuest = SessionData.guest;
                 orderstatus = 0;
             }
             else
@@ -362,10 +368,10 @@ namespace posv2
             }
 
             //DateTime localDate = DateTime.Now.ToString("yyyy-M-d");
-            int noOfGuest = SessionData.guest;
+            
             double cartPrice = SessionData.cartTotal;
             con = new db();
-            string q = "insert into orders (created,guest,order_type,discount,service_charge,active,user_id) values('" + DateTime.Now.ToString("yyyy-MM-dd hh:mm tt") + "','" + noOfGuest + "','Default','" + SessionData.discount + "','" + SessionData.serviceCharge + "','" + orderstatus + "','" + SessionData.userid + "')";
+            string q = "insert into orders (created,guest,order_type,discount,service_charge,active,user_id) values('" + DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss tt") + "','" + noOfGuest + "','" + odtype + "','" + SessionData.discount + "','" + SessionData.serviceCharge + "','" + orderstatus + "','" + SessionData.userid + "')";
 
             con.MysqlQuery(q);
             con.NonQueryEx();
@@ -643,8 +649,6 @@ namespace posv2
 
                    // if (SessionData.paymentType.Equals(1))
                    // {
-                        //save card details
-                        saveCardDetails();
                         List<Receipt> order;
                         order = LoadReceiptData();
                         SessionData.setBillamount();
@@ -794,7 +798,9 @@ namespace posv2
             DataTable orders;
             con = new db();
             //con.MysqlQuery("SELECT orders.id,orders.tabel,users.username,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=1) kotorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=2) botorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=0) canceledorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id) AS itemcount ,(SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id) AS due FROM orders JOIN order_details ON order_details.order_id = orders.id JOIN users ON users.id=orders.user_id WHERE (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id)- (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id)*orders.discount/100 + (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id)*orders.service_charge/100 -  orders.paid > 0 AND (SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1) >0 GROUP BY orders.id ORDER BY orders.id DESC"); //30-08-2017
-            con.MysqlQuery("SELECT orders.id,orders.tabel,users.username,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=1) kotorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=2) botorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=0) canceledorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id) AS itemcount ,(SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id) AS due FROM orders JOIN order_details ON order_details.order_id = orders.id JOIN users ON users.id=orders.user_id WHERE (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id)- (SELECT SUM(order_details.subtotal) FROM order_details WHERE  order_details.online = 1 AND order_details.order_id=orders.id)*orders.discount/100 + (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id)*orders.service_charge/100 -  orders.paid > 0 AND (SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1) >0 GROUP BY orders.id ORDER BY orders.id DESC");// 30-08-2017
+            //con.MysqlQuery("SELECT orders.id,orders.tabel,users.username,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=1) kotorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=2) botorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=0) canceledorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id) AS itemcount ,(SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id) AS due FROM orders JOIN order_details ON order_details.order_id = orders.id JOIN users ON users.id=orders.user_id WHERE (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id)- (SELECT SUM(order_details.subtotal) FROM order_details WHERE  order_details.online = 1 AND order_details.order_id=orders.id)*orders.discount/100 + (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.online = 1 AND order_details.order_id=orders.id)*orders.service_charge/100 -  orders.paid > 0 AND (SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1) >0 GROUP BY orders.id ORDER BY orders.id DESC");// 30-08-2017
+            //con.MysqlQuery("SELECT orders.discount,orders.service_charge,orders.id,orders.tabel,orders.guest,users.username,orders.paid,FORMAT( ( ( SUM(order_details.subtotal) + (SUM(order_details.subtotal)*orders.service_charge/100) ) - ( ( SUM(order_details.subtotal) + (SUM(order_details.subtotal)*orders.service_charge/100) ) *orders.discount/100 ) - orders.paid),2 ) AS due,COUNT(order_details.id) AS itemcount,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=1) kotorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=2) botorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=0) canceledorders FROM orders JOIN users ON users.id = orders.user_id JOIN order_details ON order_details.order_id= orders.id WHERE date(orders.created) = date(CURDATE()) GROUP BY orders.id HAVING ( ( SUM(order_details.subtotal) + (SUM(order_details.subtotal)*orders.service_charge/100) ) - ( ( SUM(order_details.subtotal) + (SUM(order_details.subtotal)*orders.service_charge/100) ) *orders.discount/100 ) - orders.paid) > 0");// 08-09-2017 service charge calculation changed //fixed query error cause orderdetails.online=1 not checking
+            con.MysqlQuery("SELECT orders.discount,orders.service_charge,orders.id,orders.tabel,orders.guest,users.username,orders.paid,FORMAT((( (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1) + ((SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1)*orders.service_charge/100) ) - ( ( (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1) + ((SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1)*orders.service_charge/100) ) *orders.discount/100 ) - orders.paid),2) AS due,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.online=1 AND order_details.order_id=orders.id) AS itemcount,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=1 AND order_details.online=1) kotorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.item_type=2 AND order_details.online=1) botorders,(SELECT COUNT(order_details.id) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=0) canceledorders FROM orders JOIN users ON users.id = orders.user_id JOIN order_details ON order_details.order_id= orders.id WHERE date(orders.created) = date(CURDATE()) GROUP BY orders.id HAVING (( (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1) + ((SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1)*orders.service_charge/100) )- ( ( (SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1) + ((SELECT SUM(order_details.subtotal) FROM order_details WHERE order_details.order_id=orders.id AND order_details.online=1)*orders.service_charge/100) ) *orders.discount/100 ) - orders.paid) > 0");//11-09-2017
             orders = con.QueryEx();
             con.conClose();
             return orders;
@@ -874,8 +880,6 @@ namespace posv2
             //checkNewOrders();
             //firstOrderId = lastOrderId;
             lbl_newOrderCount.Text = SessionData.newordercount.ToString();
-            
-
          //   GC.Collect();
           //  GC.WaitForPendingFinalizers();
 
@@ -1307,9 +1311,6 @@ namespace posv2
                 con.NonQueryEx();
                 con.conClose();
             }
-            else {
-                MessageBox.Show("Please select Order.");
-            }
             
 
         }
@@ -1372,6 +1373,8 @@ namespace posv2
                                     dataGridView2.Refresh();
                                     loadOrderDetails();
                                     reOpenOrder();
+                                    SessionData.DeleteItem();
+                                    ShowCartTotal();
                                     managerPassword = false;
                                 }//manager correct
                                 authproceed = false;

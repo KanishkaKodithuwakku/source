@@ -198,7 +198,7 @@ namespace posv2
             graphics.DrawString(underLine, new Font(customfont, 10),
                      new SolidBrush(Color.Black), startX, startY + Offset);
 
-
+            double subtotal = 0;
             foreach (var item in _list)
             {
                 //Item start
@@ -226,7 +226,39 @@ namespace posv2
                 graphics.DrawString(String.Format("{0:n}", item.total), new Font(customfont, 9),
                          new SolidBrush(Color.Black), 190, startY + Offset);
                 //Item Ends
+                subtotal += double.Parse(item.total.ToString());
             }
+            Offset = Offset + 20;
+            graphics.DrawString(underLine, new Font(customfont, 10),
+                    new SolidBrush(Color.Black), startX, startY + Offset);
+            Offset = Offset + 15;
+           
+            
+            graphics.DrawString("SUB TOTAL", new Font(customfont, 9),
+                         new SolidBrush(Color.Black), startX, startY + Offset);
+
+            graphics.DrawString(String.Format("{0:n}", subtotal), new Font(customfont, 9),
+                         new SolidBrush(Color.Black), 190, startY + Offset);
+            Offset = Offset + 20;
+            graphics.DrawString("Service Charge", new Font(customfont, 9),
+                        new SolidBrush(Color.Black), startX, startY + Offset);
+
+            graphics.DrawString(SessionData.serviceCharge + "%", new Font(customfont, 9),
+                         new SolidBrush(Color.Black), 150, startY + Offset);
+
+            graphics.DrawString(String.Format("{0:n}", SessionData.servicePrice), new Font(customfont, 9),
+                         new SolidBrush(Color.Black), 190, startY + Offset);
+            Offset = Offset + 20;
+            graphics.DrawString("Discount", new Font(customfont, 9),
+                        new SolidBrush(Color.Black), startX, startY + Offset);
+
+            graphics.DrawString(SessionData.discount + "%", new Font(customfont, 9),
+                         new SolidBrush(Color.Black), 150, startY + Offset);
+
+            graphics.DrawString(String.Format("{0:n}", SessionData.discountedPrice), new Font(customfont, 9),
+                         new SolidBrush(Color.Black), 190, startY + Offset);
+
+
             Offset = Offset + 20;
 
             graphics.DrawString(underLine, new Font(customfont, 10),
@@ -246,37 +278,60 @@ namespace posv2
 
             //discount
             Offset = Offset + 15;
-            graphics.DrawString("Discount:" + SessionData.discount + "%",
-                     new Font(customfont, 10),
-                     new SolidBrush(Color.Black), startX, startY + Offset);
 
             if (preprintbill != 1) {
-                //cash
-                graphics.DrawString("Cash:" + String.Format("{0:n}", this.cash),
-                         new Font(customfont, 10),
-                         new SolidBrush(Color.Black), 120, startY + Offset);
+                //cash or card
+                if (SessionData.paymentType.Equals(1))
+                {
+                    graphics.DrawString("Card:",
+                             new Font(customfont, 10),
+                             new SolidBrush(Color.Black), startX, startY + Offset);
+
+                    
+                }
+                else {
+                    graphics.DrawString("Cash:",
+                             new Font(customfont, 10),
+                             new SolidBrush(Color.Black), startX, startY + Offset);
+                }
+
+                graphics.DrawString(String.Format("{0:n}", this.cash), new Font(customfont, 9),
+                         new SolidBrush(Color.Black), 190, startY + Offset);
             }
-           
 
 
 
-            //service charg
+            if (preprintbill != 1)
+            {
+                //cash or card
+                if (SessionData.paymentType.Equals(1))
+                {
+                    Offset = Offset + 15;
+
+                    graphics.DrawString(SessionData.cardtype + "  XXXX-XXXX-XXXX-" + SessionData.cardlastdigits,
+                             new Font(customfont, 10),
+                             new SolidBrush(Color.Black), startX, startY + Offset);
+
+
+                }
+            }
+
+
+         
+
             Offset = Offset + 15;
-            graphics.DrawString("Service:" + SessionData.serviceCharge + "%",
-                     new Font(customfont, 10),
-                     new SolidBrush(Color.Black), startX, startY + Offset);
 
             if (preprintbill != 1)
             {
                 //balance
-                graphics.DrawString("Balance:" + String.Format("{0:n}", this.balance),
+                graphics.DrawString("Balance:",
                         new Font(customfont, 10),
-                        new SolidBrush(Color.Black), 120, startY + Offset);
+                        new SolidBrush(Color.Black), startX, startY + Offset);
+
+                graphics.DrawString(String.Format("{0:n}", this.balance), new Font(customfont, 9),
+                         new SolidBrush(Color.Black), 190, startY + Offset);
 
             }
-
-
-
 
             Offset = Offset + 20;
 

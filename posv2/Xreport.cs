@@ -438,6 +438,10 @@ namespace posv2
                                  new Font(customfont, 10),
                                  new SolidBrush(Color.Black), startX, startY + Offset);
                         Offset = Offset + 15;
+                        graphics.DrawString(catRows["id"].ToString(),
+                                 new Font(customfont, 10),
+                                 new SolidBrush(Color.Black), startX, startY + Offset);
+                        Offset = Offset + 15;
                         graphics.DrawString(String.Format("{0:n}", catRows["sale"]),
                                 new Font(customfont, 10),
                                 new SolidBrush(Color.Black), 110, startY + Offset);

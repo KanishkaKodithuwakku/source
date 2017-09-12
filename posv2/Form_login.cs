@@ -30,7 +30,7 @@ namespace posv2
             DataTable result;
             con = new db();
             //string query = "SELECT (IF(SUM(order_details.subtotal)>0,FORMAT(SUM(order_details.subtotal),2),FORMAT(0,2))) AS totalsale FROM `order_details` WHERE date(order_details.added) = date(CURDATE()) AND order_details.online=1";
-            string query = "SELECT (IF(SUM(order_details.subtotal)>0,FORMAT(SUM(order_details.subtotal-(order_details.subtotal*orders.discount/100)+(order_details.subtotal*orders.service_charge/100)),2),FORMAT(0,2))) AS totalsale FROM `order_details` JOIN orders ON orders.id = order_details.order_id WHERE date(order_details.added) = date(CURDATE()) AND order_details.online=1 AND order_details.order_id = orders.id ";
+            string query = "SELECT (IF(SUM(order_details.subtotal)>0,FORMAT( SUM((order_details.subtotal + (order_details.subtotal*orders.service_charge/100))-((order_details.subtotal + (order_details.subtotal*orders.service_charge/100))*orders.discount/100)) ,2),FORMAT(0,2))) AS totalsale FROM `order_details` JOIN orders ON orders.id = order_details.order_id WHERE date(order_details.added) = date(CURDATE()) AND order_details.online=1 AND orders.active = 0";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
@@ -44,7 +44,7 @@ namespace posv2
             con = new db();
             //string query = "SELECT COUNT(order_details.id) AS itemcount,(SUM(order_details.subtotal)) AS cardsale, (IF(paymentdetails.cardtype='','CASH',paymentdetails.cardtype)) AS cardtype FROM order_details JOIN orders ON orders.id=order_details.order_id JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 GROUP BY paymentdetails.cardtype ";
             //string query = "SELECT COUNT(order_details.id) AS itemcount,(SUM(order_details.subtotal)) AS cardsale,paymentdetails.cardtype AS cardtype FROM order_details JOIN orders ON orders.id=order_details.order_id JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 GROUP BY paymentdetails.cardtype ";
-            string query = "SELECT SUM(paymentdetails.amount) AS total,paymentdetails.cardtype FROM `paymentdetails` WHERE date(paymentdetails.created) = date(CURDATE()) GROUP BY paymentdetails.cardtype";
+            string query = "SELECT SUM(paymentdetails.amount) AS cardsale,paymentdetails.cardtype FROM `paymentdetails` WHERE date(paymentdetails.created) = date(CURDATE()) GROUP BY paymentdetails.cardtype";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
@@ -67,7 +67,7 @@ namespace posv2
             DataTable result;
             con = new db();
            // string query = "SELECT SUM(order_details.subtotal) AS sale,categories.name, COUNT(order_details.product_id) AS itemcount FROM order_details JOIN products ON products.id = order_details.product_id JOIN categories ON categories.id = products.category_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 GROUP BY categories.id";
-            string query = "SELECT SUM(order_details.subtotal-(order_details.subtotal*orders.discount/100)+(order_details.subtotal*orders.service_charge/100)) AS sale,categories.name, COUNT(order_details.product_id) AS itemcount FROM order_details JOIN products ON products.id = order_details.product_id JOIN categories ON categories.id = products.category_id JOIN orders ON orders.id=order_details.order_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 GROUP BY categories.id ";
+            string query = "SELECT categories.id,(SUM(order_details.subtotal) + (SUM(order_details.subtotal)*orders.service_charge/100) ) - ( ( SUM(order_details.subtotal) + (SUM(order_details.subtotal)*orders.service_charge/100) ) *orders.discount/100) AS sale,categories.name, COUNT(order_details.product_id) AS itemcount FROM order_details JOIN products ON products.id = order_details.product_id JOIN categories ON categories.id = products.category_id JOIN orders ON orders.id=order_details.order_id WHERE date(order_details.added) = CURDATE() AND order_details.online = 1 AND orders.active =0 GROUP BY categories.id ";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
@@ -79,7 +79,7 @@ namespace posv2
         {
             DataTable result;
             con = new db();
-            string query = "SELECT (IF(SUM(orders.guest) IS NULL,0,SUM(orders.guest))) AS guestcount FROM order_details JOIN orders ON orders.id = order_details.order_id WHERE date(order_details.added) = date(CURDATE())";
+            string query = "SELECT (IF(SUM(orders.guest) IS NULL,0,SUM(orders.guest))) AS guestcount FROM orders WHERE date(orders.created) = date(CURDATE()) AND orders.active = 0";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
@@ -102,7 +102,8 @@ namespace posv2
             DataTable result;
             con = new db();
             //string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (SELECT SUM(od.subtotal) FROM order_details od JOIN paymentdetails p WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id = od.order_id) AS cardsale FROM order_details JOIN paymentdetails WHERE order_details.online = 1 AND paymentdetails.orders_id = order_details.order_id AND date(order_details.added) = date(CURDATE())";
-            string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (SELECT SUM(od.subtotal+(od.subtotal*orders.service_charge/100)-(od.subtotal*orders.discount/100)) FROM order_details od JOIN paymentdetails p JOIN orders ON orders.id=od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id = od.order_id) AS cardsale FROM order_details JOIN paymentdetails WHERE order_details.online = 1 AND paymentdetails.orders_id = order_details.order_id AND date(order_details.added) = date(CURDATE())";
+            //string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (SELECT SUM(od.subtotal+(od.subtotal*orders.service_charge/100)-(od.subtotal*orders.discount/100)) FROM order_details od JOIN paymentdetails p JOIN orders ON orders.id=od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id = od.order_id) AS cardsale FROM order_details JOIN paymentdetails WHERE order_details.online = 1 AND paymentdetails.orders_id = order_details.order_id AND date(order_details.added) = date(CURDATE())"; // 08-09-2017  service charge calculation changed
+            string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, ( SELECT SUM( (od.subtotal+(od.subtotal*orders.service_charge/100))- ((od.subtotal+(od.subtotal*orders.service_charge/100))*orders.discount/100 ) ) FROM order_details od JOIN paymentdetails p JOIN orders ON orders.id=od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id = od.order_id) AS cardsale FROM order_details JOIN paymentdetails WHERE order_details.online = 1 AND paymentdetails.orders_id = order_details.order_id AND date(order_details.added) = date(CURDATE())";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
@@ -115,7 +116,8 @@ namespace posv2
             DataTable result;
             con = new db();
             //string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (SELECT SUM(od.subtotal) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1  AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL) AS cardsale FROM order_details LEFT JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE paymentdetails.orders_id IS NULL AND order_details.online = 1 AND date(order_details.added) = date(CURDATE())";
-            string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (SELECT SUM(od.subtotal+(od.subtotal*orders.service_charge/100)-(od.subtotal*orders.discount/100)) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id JOIN orders ON orders.id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL) AS cardsale FROM order_details LEFT JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE paymentdetails.orders_id IS NULL AND order_details.online = 1 AND date(order_details.added) = date(CURDATE())";
+            //string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (SELECT SUM(od.subtotal+(od.subtotal*orders.service_charge/100)-(od.subtotal*orders.discount/100)) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id JOIN orders ON orders.id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL) AS cardsale FROM order_details LEFT JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE paymentdetails.orders_id IS NULL AND order_details.online = 1 AND date(order_details.added) = date(CURDATE())"; // service charge calculation chnanged
+            string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, ( SELECT SUM( (od.subtotal+(od.subtotal*orders.service_charge/100))- ((od.subtotal+(od.subtotal*orders.service_charge/100))*orders.discount/100 ) ) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id JOIN orders ON orders.id = od.order_id WHERE  orders.active = 0 AND date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL) AS cardsale FROM order_details LEFT JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE paymentdetails.orders_id IS NULL AND order_details.online = 1 AND date(order_details.added) = date(CURDATE())";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
@@ -128,6 +130,7 @@ namespace posv2
             DataTable result;
             con = new db();
             //old query modify for null values//SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (SELECT SUM(od.subtotal) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1  AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL) AS cardsale FROM order_details LEFT JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE paymentdetails.orders_id IS NULL AND order_details.online = 1 AND date(order_details.added) = date(CURDATE())
+            //string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (IF((SELECT SUM(od.subtotal) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL)IS NULL,0,(SELECT SUM(od.subtotal) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL))) AS cardsale FROM order_details LEFT JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE paymentdetails.orders_id IS NULL AND order_details.online = 1 AND date(order_details.added) = date(CURDATE())"; // service charge calculation chaged
             string query = "SELECT DISTINCT order_details.shift_no, (SELECT group_concat(DISTINCT order_details.order_id) FROM order_details) as order_id, (IF((SELECT SUM(od.subtotal) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL)IS NULL,0,(SELECT SUM(od.subtotal) FROM order_details od LEFT JOIN paymentdetails p ON p.orders_id = od.order_id WHERE date(od.added) = date(CURDATE()) AND od.online = 1 AND od.shift_no = order_details.shift_no AND p.orders_id IS NULL))) AS cardsale FROM order_details LEFT JOIN paymentdetails ON paymentdetails.orders_id = order_details.order_id WHERE paymentdetails.orders_id IS NULL AND order_details.online = 1 AND date(order_details.added) = date(CURDATE())";
             con.MysqlQuery(query);
             result = con.QueryEx();
@@ -144,7 +147,10 @@ namespace posv2
         void getTotaldiscount() {
             DataTable result;
             con = new db();
-            string query = "SELECT (IF(SUM(discount_price)IS NULL,0,SUM(discount_price))) AS total_discount_price FROM (SELECT (SUM(order_details.subtotal) * orders.discount/100) AS discount_price FROM `order_details` JOIN orders WHERE order_details.order_id = orders.id AND date(order_details.added) = date(CURDATE()) GROUP BY order_details.order_id ) T";
+            //string query = "SELECT (IF(SUM(discount_price)IS NULL,0,SUM(discount_price))) AS total_discount_price FROM (SELECT (SUM(order_details.subtotal) * orders.discount/100) AS discount_price FROM `order_details` JOIN orders WHERE order_details.order_id = orders.id AND date(order_details.added) = date(CURDATE()) GROUP BY order_details.order_id ) T";// service charge calculation changed
+            //string query = "SELECT (IF(SUM(discount_price)IS NULL,0,SUM(discount_price))) AS total_discount_price FROM (SELECT (SUM((order_details.subtotal)+ (order_details.subtotal*orders.service_charge/100)) * orders.discount/100) AS discount_price FROM `order_details` JOIN orders WHERE order_details.order_id = orders.id AND date(order_details.added) = date(CURDATE()) GROUP BY order_details.order_id ) T";
+            string query = "SELECT sum((((select sum(order_details.subtotal) from order_details where order_details.order_id = orders.id AND online=1)+((select sum(order_details.subtotal) from order_details where order_details.order_id = orders.id AND online=1)*orders.service_charge/100))*orders.discount/100)) as discount from orders where online=1 AND active=0 AND date(orders.created)= date(CURDATE())";
+
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();
@@ -154,7 +160,7 @@ namespace posv2
         void getTotalServicecharge() {
             DataTable result;
             con = new db();
-            string query = "SELECT (IF(SUM(serviceCharge)IS NULL,0,SUM(serviceCharge))) AS total_service_charge FROM (SELECT (SUM(order_details.subtotal) * orders.service_charge/100) AS serviceCharge FROM `order_details` JOIN orders WHERE order_details.order_id = orders.id AND date(order_details.added) = date(CURDATE()) GROUP BY order_details.order_id ) T";
+            string query = "SELECT (IF(SUM(serviceCharge)IS NULL,0,SUM(serviceCharge))) AS total_service_charge FROM (SELECT (SUM(order_details.subtotal) * orders.service_charge/100) AS serviceCharge FROM `order_details` JOIN orders WHERE order_details.order_id = orders.id AND date(order_details.added) = date(CURDATE()) AND order_details.online=1 GROUP BY order_details.order_id ) T";
             con.MysqlQuery(query);
             result = con.QueryEx();
             con.conClose();

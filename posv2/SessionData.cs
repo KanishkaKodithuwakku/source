@@ -191,7 +191,7 @@ namespace posv2
         public static double billamount { get; private set; }
         public static void setBillamount()
         {
-            billamount = (cartTotal - (cartTotal * discount / 100) + (cartTotal * serviceCharge / 100)) - payamount;
+            billamount = ((cartTotal + (cartTotal * serviceCharge / 100)) - ((cartTotal + (cartTotal * serviceCharge / 100)) * discount / 100)) - payamount;
             SetLastbillamount();
             SetChageMoney();
         }
@@ -201,8 +201,8 @@ namespace posv2
         public static double servicePrice { get; private set; }
         public static void SetLastbillamount()
         {
-            lastbillamout = (cartTotal - (cartTotal * discount / 100) + (cartTotal * serviceCharge / 100));
-            discountedPrice = cartTotal * discount / 100;
+            lastbillamout = ((cartTotal + (cartTotal * serviceCharge / 100)) - ((cartTotal + (cartTotal * serviceCharge / 100)) * discount / 100));
+            discountedPrice = (cartTotal + (cartTotal * serviceCharge / 100)) * discount / 100;
             servicePrice = cartTotal * serviceCharge / 100;
 
         }
